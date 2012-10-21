@@ -1,139 +1,108 @@
-/*
-	microphone.js
-	Morteza Milani (mrtz.milani@googlemail.com)
-	https://github.com/milani/microphone.js
-	Published under MIT license
-*/
-
+// global jQuery: true
+//   microphone.js
+//   Morteza Milani (mrtz.milani@googlemail.com)
+//   https://github.com/milani/microphone.js
+//   Published under MIT license
+//
 var Mic = {
-    mics : [],
-    push : function(object){
-        this.mics[object.id] = object;
-    },
-    ready : function(id){
-        this.mics[id].ready();
-    },
-    muted : function(id){
-        this.mics[id].onMute();
-    },
-    data : function(id,data){
-        this.mics[id].onSamplesAvailable(data,1);
-    },
-    error : function(id,code,message){
-        this.mics[id].onError(id,code,message);
-    }
+  mics : [],
+  push : function(object){
+    this.mics[object.id] = object;
+  },
+  ready : function(id){
+    this.mics[id].onReady();
+  },
+  status: function(id, event){
+    this.mics[id].onStatus(event);
+  },
+  vad: function(id, event){
+    this.mics[id].onVad(event);
+  },
+  data : function(id, data){
+    this.mics[id].onData(data);
+  },
+  error : function(id, message){
+    this.mics[id].onError(message);
+  }
 }
 
-function Microphone(options,callback){
 
-    var defaults = {
-        mode       : 2, //Available modes: Recording -> 1, Streaming -> 2
-        sampleRate : 44100,
-        gain       : 50,
-        swfPath    : 'microphone.swf',
-        debugging  : true
-    }
+;(function($) {
+
+  $.microphone = function(el, options) {
+
+    var init, plugin, defaults = {
+      sampleRate : 16000,
+      gain       : 50,
+      swfPath    : 'microphone.swf',
+      debugging  : true
+    };
+
+    plugin = this;
+
+    plugin.settings = {};
+
+    init = function() {
+      plugin.settings = $.extend({}, defaults, options);
+      plugin.el = el;
+      plugin.id = 'mic' + new Date().getTime();
+
+      // code goes here
+      var args, swf; 
+      swf = $('<object>').attr('id', plugin.id);
+      swf.attr('type', 'application/x-shockwave-flash');
+      swf.attr('data', plugin.settings.swfPath);
+      swf.css({width:'215px', height: '138px'});
+      
+      args = "debugging=" + plugin.settings.debugging + "&";
+      args += "rate=" + plugin.settings.sampleRate + "&";
+      args += "id=" + plugin.id;
+
+      $(swf).append($('<param>').attr('name', 'movie').attr('value', plugin.settings.swfPath));
+      $(swf).append($('<param>').attr('name', 'FlashVars').attr('value', args));
+
+      $(el).append(swf);
+
+
+      // swf bridge
+      var bridge = {id: plugin.id};
+      
+      bridge.onReady= function() {
+        plugin.swf = document.getElementById(plugin.id);
+        console.log('ready');
+        $(plugin.el).trigger('ready');
+      };
+      bridge.onData = function (data){
+        $(plugin.el).trigger('data', {timestamp: new Date().getTime(), sample: data});
+      }; 
+      bridge.onError= function(message) {
+        $(plugin.el).trigger('error', message);
+      };
+      bridge.onStatus = function(event) {
+        $(plugin.el).trigger('status', event);
+      };
+      bridge.onVad= function(event) {
+        $(plugin.el).trigger('vad', event);
+      };
+      
+      Mic.push(bridge);
+      
+    };
+
+    plugin.list = function() {
+      return plugin.swf.getMicrophoneList();
+    };
+    plugin.start = function() {
+      plugin.swf.start();
+    };
+    plugin.stop = function(){
+      plugin.swf.stop();
+    };
+    plugin.echo = function(enabled){
+      plugin.swf.enableLoopBack(enabled);
+    };
     
-    var validRates = {
-        '44': true,
-        '22': true,
-        '11': true,
-        '8' : true,
-        '5' : true
-    }
+    init();
 
-    if(typeof options == "function"){
-        callback = options;
-        options = {};
-    }
-    
-    options = options || {};
-
-    for (var index in defaults) {
-	    if (options[index] !== undefined) {
-	        defaults[index] = options[index];
-	    }
-	}
-
-    defaults.sampleRate = parseInt(defaults.sampleRate / 1000);
-
-    if( ! validRates[defaults.sampleRate]){
-        defaults.sampleRate = 8;
-    }
-
-    this.id = 'mic' + new Date().getTime();
-
-    var objectHTML = '<object id="' + this.id + '" type="application/x-shockwave-flash" data="' + defaults.swfPath + '" width="215" height="138"><param name="movie" value="' + defaults.swfPath + '" /><param name="FlashVars" value="debugging=' + defaults.debugging + '&amp;rate='+defaults.sampleRate+'&amp;id=' + this.id + '&amp;mode=' + defaults.mode + '" /></object>';
-
-    Mic.push(this);
-
-    var self = this;
-    
-    function insertIntoDom(htmlStr){
-        var frag = document.createDocumentFragment(),
-        temp = document.createElement('div');
-        temp.innerHTML = htmlStr;
-        while (temp.firstChild) {
-            frag.appendChild(temp.firstChild);
-        }
-        document.body.appendChild(frag);
-        
-        self.swf = document.getElementById(self.id);
-        
-    }
-    
-    this.readyState = false;
-    
-    this.ready = function(){
-        this.readyState = true;
-        if(callback) callback.call(this);
-    }
-
-    insertIntoDom(objectHTML);
-}
-
-Microphone.prototype = {
-    get STREAM(){
-        return 2;
-    },
-    get RECORD(){
-        return 1;
-    },
-    get sampleRate(){
-        return this.swf.getRate() * 1000;
-    },
-    set sampleRate(val){
-        this.swf.setRate(parseInt(val/1000));
-    },
-    get channelCount(){
-        return 1; //flash supports only mono microphones
-    },
-    get name(){
-        return this.swf.getName();
-    },
-    set index(val){
-        this.swf.setMic(val);
-    },
-    set loopBack(val){
-        this.swf.enableLoopBack(val);
-    },
-    set onMute(func){
-        this.onMute = func;
-    },
-    on : function(event,callback){
-        this[event] = callback;
-    },
-    getMicrophoneList: function(){
-        return this.swf.getMicrophoneList();
-    },
-    start: function(){
-        this.swf.start();
-    },
-    stop: function(){
-        this.swf.stop();
-    },
-    isReady : function(){
-        return this.readyState;
-    }
-}
-
+  };
+})(jQuery);
