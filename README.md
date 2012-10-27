@@ -1,13 +1,22 @@
 About
 =====
 
-A jQuery plugin providing streaming access to microphone via Flash.
+A jQuery plugin providing vad and streaming access to microphone via Flash.
 
-Example
--------
+Only supports speex codec right now.
 
-      var microphone = new $.microphone('#microphone');
-      $('#microphone').on('ready', function(event){
+## Example
+
+      var options = {
+        vad: {
+            level: 10, 
+            timeout: 2000
+        }
+      };
+      // hook microphone object to some div element
+      // an <object> will be created dynamically
+      var microphone = new $.microphone('#div', options);
+      $('#div').on('ready', function(event){
         console.log('ready');
         // will stop after 10 sec.
         setTimeout(function(){
@@ -17,21 +26,29 @@ Example
         microphone.start();
       });
       //when samples are available, this function is called
-      $('#microphone').on('data', function(event, data){
+      $('#div').on('data', function(event, data){
         console.log(data);
       });
       // receive notification about voice activation detection
-      $('#microphone').on('vad', function(event, data){
+      $('#div').on('vad', function(event, data){
         console.log(data);
       });
 
-License
--------
+## Building Flash Object
+
+    rake swf
+
+Note that you will need the flex builder command line tools from the SDK, which is 
+[available](http://www.adobe.com/devnet/flex/flex-sdk-download.html) for free.
+
+## Contributors
+
+* Morteza Milani
+* Pascal Deschenes
+
+## License
 
 (The MIT License)
-
-Copyright (c) 2011 Morteza Milani
-
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
 'Software'), to deal in the Software without restriction, including

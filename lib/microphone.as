@@ -20,9 +20,11 @@ package {
 
     private var mic:Microphone    = null;
     private var debugging:Boolean = false;
-    private var JSObject:String   = null;
+    private var JSObject:String   = "Mic";
     private var data:Array = new Array();
     private var id:String = null;
+    private var silenceLevel:Number = 1;
+    private var silenceTimeout:Number = 1000;
 
     public function microphone() {
 
@@ -34,9 +36,12 @@ package {
 
       var options:Object = this.loaderInfo.parameters;
 
-      debugging = options.debugging  || false;
-      JSObject  = options.objectName || "Mic";
-      id        = options.id;
+      debugging = options.debugging  || debugging;
+      JSObject  = options.objectName || JSObject;
+      silenceLevel = options.silenceLevel || silenceLevel; 
+      silenceTimeout = options.silenceTimeout || silenceTimeout;
+      // what happens when no id is provided? Events can't be dispatched
+      id = options.id;
 
       this.log(options);
 
@@ -54,7 +59,7 @@ package {
         mic.addEventListener(ActivityEvent.ACTIVITY,activityHandler);
         mic.codec = SoundCodec.SPEEX;
         mic.enableVAD = true;
-        mic.setSilenceLevel(1, 1000);
+        mic.setSilenceLevel(silenceLevel, silenceTimeout);
         mic.setUseEchoSuppression(true); 
         mic.setLoopBack(false);
         mic.gain = 50;
@@ -144,7 +149,6 @@ package {
     public function log(message:*):void{
       if(debugging){
         ExternalInterface.call('console.log', "microphone.js:", message);
-
       }
     };
 

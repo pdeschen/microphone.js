@@ -3,7 +3,8 @@
 //   Morteza Milani (mrtz.milani@googlemail.com)
 //   https://github.com/milani/microphone.js
 //   Published under MIT license
-//
+
+// this is the internal object used within swf
 var Mic = {
   mics : [],
   push : function(object){
@@ -26,8 +27,11 @@ var Mic = {
   }
 }
 
-
 ;(function($) {
+
+  if (window.location.protocol === "file:") {
+    throw new Error("Flash can't access microphone on " + window.location.protocol +" location. [" + window.location + "].");
+  }
 
   $.microphone = function(el, options) {
 
@@ -35,6 +39,10 @@ var Mic = {
       sampleRate : 16000,
       gain       : 50,
       swfPath    : 'microphone.swf',
+      vad: {
+        level: 1,
+        timeout: 1000
+      },
       debugging  : true
     };
 
@@ -56,7 +64,9 @@ var Mic = {
       
       args = "debugging=" + plugin.settings.debugging + "&";
       args += "rate=" + plugin.settings.sampleRate + "&";
-      args += "id=" + plugin.id;
+      args += "id=" + plugin.id + "&";
+      args += "silenceLevel=" + plugin.settings.vad.level + "&";
+      args += "silenceTimeout=" + plugin.settings.vad.timeout;
 
       $(swf).append($('<param>').attr('name', 'movie').attr('value', plugin.settings.swfPath));
       $(swf).append($('<param>').attr('name', 'FlashVars').attr('value', args));
