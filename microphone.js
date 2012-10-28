@@ -37,7 +37,8 @@ var Mic = {
 
     var init, plugin, defaults = {
       sampleRate : 16000,
-      gain       : 50,
+      codec : 'pcmu',
+      gain       : 100,
       swfPath    : 'microphone.swf',
       vad: {
         level: 1,
@@ -55,15 +56,15 @@ var Mic = {
       plugin.el = el;
       plugin.id = 'mic' + new Date().getTime();
 
-      // code goes here
-      var args, swf; 
+      var args, swf, bridge; 
       swf = $('<object>').attr('id', plugin.id);
       swf.attr('type', 'application/x-shockwave-flash');
       swf.attr('data', plugin.settings.swfPath);
       swf.css({width:'215px', height: '138px'});
       
       args = "debugging=" + plugin.settings.debugging + "&";
-      args += "rate=" + plugin.settings.sampleRate + "&";
+      args += "gain=" + plugin.settings.gain + "&";
+      args += "codec=" + plugin.settings.codec + "&";
       args += "id=" + plugin.id + "&";
       args += "silenceLevel=" + plugin.settings.vad.level + "&";
       args += "silenceTimeout=" + plugin.settings.vad.timeout;
@@ -73,9 +74,8 @@ var Mic = {
 
       $(el).append(swf);
 
-
       // swf bridge
-      var bridge = {id: plugin.id};
+      bridge = {id: plugin.id};
       
       bridge.onReady= function() {
         plugin.swf = document.getElementById(plugin.id);
@@ -96,7 +96,6 @@ var Mic = {
       };
       
       Mic.push(bridge);
-      
     };
 
     plugin.list = function() {

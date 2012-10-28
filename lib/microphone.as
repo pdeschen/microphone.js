@@ -23,8 +23,10 @@ package {
     private var JSObject:String   = "Mic";
     private var data:Array = new Array();
     private var id:String = null;
-    private var silenceLevel:Number = 1;
-    private var silenceTimeout:Number = 1000;
+    private var silenceLevel:Number = 50;
+    private var silenceTimeout:Number = 2000;
+    private var gain:Number = 50;
+    private var codec:String= SoundCodec.PCMU;
 
     public function microphone() {
 
@@ -40,10 +42,12 @@ package {
       JSObject  = options.objectName || JSObject;
       silenceLevel = options.silenceLevel || silenceLevel; 
       silenceTimeout = options.silenceTimeout || silenceTimeout;
+      codec = options.codec || codec;
+      gain= options.gain || gain;
       // what happens when no id is provided? Events can't be dispatched
       id = options.id;
 
-      this.log(options);
+      log(options);
 
       if(majorVersion + majorRevision < 10.1){
         this.error("Flash Player 10.1 or above is required.");
@@ -57,12 +61,12 @@ package {
       if ( null != mic ) {
         mic.addEventListener(StatusEvent.STATUS,statusHandler);
         mic.addEventListener(ActivityEvent.ACTIVITY,activityHandler);
-        mic.codec = SoundCodec.SPEEX;
+        mic.codec = codec;
         mic.enableVAD = true;
         mic.setSilenceLevel(silenceLevel, silenceTimeout);
         mic.setUseEchoSuppression(true); 
         mic.setLoopBack(false);
-        mic.gain = 50;
+        mic.gain = gain;
 
         ExternalInterface.addCallback("setMic", setMic);
         ExternalInterface.addCallback("getMicrophoneList", getMicrophoneList);
@@ -71,7 +75,6 @@ package {
         ExternalInterface.addCallback("setGain", setGain);
         ExternalInterface.addCallback("setRate", setRate);
         ExternalInterface.addCallback("getRate", getRate);
-        ExternalInterface.addCallback("enableLoopback", enableLoopback);
         ExternalInterface.addCallback("start", start);
         ExternalInterface.addCallback("stop", stop);
 
@@ -96,15 +99,12 @@ package {
     public function streamHandler(event:SampleDataEvent):void {
       log('data received.');
       var data:Array = new Array();
+      // should we send the sample directly instead of pumping buffer first?
       while(event.data.bytesAvailable){
         var sample:Number = event.data.readFloat();
         data.push(sample);
       }
       ExternalInterface.call(JSObject + '.data', id, data);
-    };
-
-    public function enableLoopback(state:Boolean):void{
-      mic.setLoopBack(state);
     };
 
     public function setQuality(quality:Number):void{
