@@ -21,12 +21,13 @@ package {
     private var mic:Microphone    = null;
     private var debugging:Boolean = false;
     private var JSObject:String   = "Mic";
-    private var data:Array = new Array();
     private var id:String = null;
     private var silenceLevel:Number = 50;
     private var silenceTimeout:Number = 2000;
     private var gain:Number = 50;
     private var codec:String= SoundCodec.PCMU;
+    private var buffer:Array = new Array();
+    private var MAX_BUFFER_SIZE:Number = 4096;
 
     public function microphone() {
 
@@ -64,9 +65,10 @@ package {
         mic.codec = codec;
         mic.enableVAD = true;
         mic.setSilenceLevel(silenceLevel, silenceTimeout);
-        mic.setUseEchoSuppression(true); 
+        mic.setUseEchoSuppression(false); 
         mic.setLoopBack(false);
         mic.gain = gain;
+        mic.rate = 8;
 
         ExternalInterface.addCallback("setMic", setMic);
         ExternalInterface.addCallback("getMicrophoneList", getMicrophoneList);
@@ -88,23 +90,32 @@ package {
 
     public function start():void{
       log('started.');
+      buffer = new Array();
       mic.addEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
     };
 
     public function stop():void{
       log('stopped.');
+      // dispatch remaining buffer
+      // could we have accumulated buffer > MAX_BUFFER_SIZE at this point?
+      log('dispatching remaining buffer of size ' + buffer.length + ".");
+      ExternalInterface.call(JSObject + '.end', id, buffer);
       mic.removeEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
     };
 
     public function streamHandler(event:SampleDataEvent):void {
-      log('data received.');
-      var data:Array = new Array();
-      // should we send the sample directly instead of pumping buffer first?
+      log('accumulating received data.');
+      ExternalInterface.call(JSObject + '.event', id, event);
+      // accumulate stream
       while(event.data.bytesAvailable){
-        var sample:Number = event.data.readFloat();
-        data.push(sample);
+        buffer.push(event.data.readFloat());
       }
-      ExternalInterface.call(JSObject + '.data', id, data);
+      // only dispatch if we have reached max buffer size. Remaining will be
+      // pertained and dispatched on next event handling or upon stop
+      if (buffer.length >= MAX_BUFFER_SIZE) {
+        log('dispatching buffer of size ' + MAX_BUFFER_SIZE + ".");
+        ExternalInterface.call(JSObject + '.data', id, buffer.splice(0, MAX_BUFFER_SIZE));
+      }
     };
 
     public function setQuality(quality:Number):void{

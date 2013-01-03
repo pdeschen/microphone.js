@@ -19,8 +19,14 @@ var Mic = {
   vad: function(id, event){
     this.mics[id].onVad(event);
   },
-  data : function(id, data){
-    this.mics[id].onData(data);
+  event: function(id, event){
+    this.mics[id].onEvent(event);
+  },
+  data : function(id, data, event){
+    this.mics[id].onData(data, event);
+  },
+  end: function(id, data, event){
+    this.mics[id].onEnd(data, event);
   },
   error : function(id, message){
     this.mics[id].onError(message);
@@ -38,11 +44,11 @@ var Mic = {
     var init, plugin, defaults = {
       sampleRate : 16000,
       codec : 'pcmu',
-      gain       : 100,
+      gain       : 50,
       swfPath    : 'microphone.swf',
       vad: {
-        level: 1,
-        timeout: 1000
+        level: 10,
+        timeout: 2000
       },
       debugging  : true
     };
@@ -82,14 +88,20 @@ var Mic = {
         console.log('ready');
         $(plugin.el).trigger('ready');
       };
-      bridge.onData = function (data){
-        $(plugin.el).trigger('data', {timestamp: new Date().getTime(), sample: data});
+      bridge.onData = function (data, event){
+        $(plugin.el).trigger('data', {timestamp: new Date().getTime(), sample: data, event: event});
+      }; 
+      bridge.onEnd = function (data, event){
+        $(plugin.el).trigger('end', {timestamp: new Date().getTime(), sample: data, event: event});
       }; 
       bridge.onError= function(message) {
         $(plugin.el).trigger('error', message);
       };
       bridge.onStatus = function(event) {
         $(plugin.el).trigger('status', event);
+      };
+      bridge.onEvent = function(event) {
+        $(plugin.el).trigger('event', event);
       };
       bridge.onVad= function(event) {
         $(plugin.el).trigger('vad', event);
