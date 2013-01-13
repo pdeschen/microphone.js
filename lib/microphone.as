@@ -69,6 +69,7 @@ package {
         mic.setLoopBack(false);
         mic.gain = gain;
         mic.rate = 8;
+        this.log(mic.rate + "-" + mic.codec + "-")
 
         ExternalInterface.addCallback("setMic", setMic);
         ExternalInterface.addCallback("getMicrophoneList", getMicrophoneList);

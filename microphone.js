@@ -42,7 +42,7 @@ var Mic = {
   $.microphone = function(el, options) {
 
     var init, plugin, defaults = {
-      sampleRate : 16000,
+      sampleRate : 8000,
       codec : 'pcmu',
       gain       : 50,
       swfPath    : 'microphone.swf',
