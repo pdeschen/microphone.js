@@ -1,47 +1,19 @@
-// global jQuery: true
+/*global jQuery*/
 //   microphone.js
 //   Morteza Milani (mrtz.milani@googlemail.com)
 //   https://github.com/milani/microphone.js
 //   Published under MIT license
 
 // this is the internal object used within swf
-var Mic = {
-  mics : [],
-  push : function(object){
-    this.mics[object.id] = object;
-  },
-  ready : function(id){
-    this.mics[id].onReady();
-  },
-  status: function(id, event){
-    this.mics[id].onStatus(event);
-  },
-  vad: function(id, event){
-    this.mics[id].onVad(event);
-  },
-  event: function(id, event){
-    this.mics[id].onEvent(event);
-  },
-  data : function(id, data, event){
-    this.mics[id].onData(data, event);
-  },
-  end: function(id, data, event){
-    this.mics[id].onEnd(data, event);
-  },
-  error : function(id, message){
-    this.mics[id].onError(message);
-  }
-}
 
-;(function($) {
-
+(function($) {
   if (window.location.protocol === "file:") {
     throw new Error("Flash can't access microphone on " + window.location.protocol +" location. [" + window.location + "].");
   }
 
   $.microphone = function(el, options) {
 
-    var init, plugin, defaults = {
+    var init, plugin = this, defaults = {
       sampleRate : 8000,
       codec : 'pcmu',
       gain       : 50,
@@ -52,9 +24,6 @@ var Mic = {
       },
       debugging  : true
     };
-
-    plugin = this;
-
     plugin.settings = {};
 
     init = function() {
@@ -64,10 +33,12 @@ var Mic = {
 
       var args, swf, bridge; 
       swf = $('<object>').attr('id', plugin.id);
+      swf.addClass('microphone');
       swf.attr('type', 'application/x-shockwave-flash');
       swf.attr('data', plugin.settings.swfPath);
       swf.css({width:'215px', height: '138px'});
-      
+     
+      // building the flash vars 
       args = "debugging=" + plugin.settings.debugging + "&";
       args += "gain=" + plugin.settings.gain + "&";
       args += "codec=" + plugin.settings.codec + "&";
@@ -85,7 +56,6 @@ var Mic = {
       
       bridge.onReady= function() {
         plugin.swf = document.getElementById(plugin.id);
-        console.log('ready');
         $(plugin.el).trigger('ready');
       };
       bridge.onData = function (data, event){
@@ -107,7 +77,7 @@ var Mic = {
         $(plugin.el).trigger('vad', event);
       };
       
-      Mic.push(bridge);
+      $.microphone.Bridges.push(bridge);
     };
 
     plugin.list = function() {
@@ -122,8 +92,34 @@ var Mic = {
     plugin.echo = function(enabled){
       plugin.swf.enableLoopBack(enabled);
     };
-    
     init();
-
   };
-})(jQuery);
+  $.microphone.Bridges = {
+    mics : [],
+    push : function(object){
+      this.mics[object.id] = object;
+    },
+    ready : function(id){
+      this.mics[id].onReady();
+    },
+    status: function(id, event){
+      this.mics[id].onStatus(event);
+    },
+    vad: function(id, event){
+      this.mics[id].onVad(event);
+    },
+    event: function(id, event){
+      this.mics[id].onEvent(event);
+    },
+    data : function(id, data, event){
+      this.mics[id].onData(data, event);
+    },
+    end: function(id, data, event){
+      this.mics[id].onEnd(data, event);
+    },
+    error : function(id, message){
+      this.mics[id].onError(message);
+    }
+  };
+    
+}(jQuery));

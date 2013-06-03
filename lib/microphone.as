@@ -14,13 +14,14 @@ package {
   import flash.events.SampleDataEvent;
   import flash.external.ExternalInterface;
   import flash.system.Security;
+  import flash.system.SecurityPanel;
   import flash.system.Capabilities;
 
   public class microphone extends Sprite {
 
     private var mic:Microphone    = null;
     private var debugging:Boolean = false;
-    private var JSObject:String   = "Mic";
+    private var JSObject:String   = "jQuery.microphone.Bridges";
     private var id:String = null;
     private var silenceLevel:Number = 50;
     private var silenceTimeout:Number = 2000;
@@ -55,7 +56,7 @@ package {
         return;
       }            
 
-      Security.showSettings("2");
+      Security.showSettings(SecurityPanel.DEFAULT);
 
       mic = Microphone.getMicrophone();
 
@@ -69,7 +70,6 @@ package {
         mic.setLoopBack(false);
         mic.gain = gain;
         mic.rate = 8;
-        this.log(mic.rate + "-" + mic.codec + "-")
 
         ExternalInterface.addCallback("setMic", setMic);
         ExternalInterface.addCallback("getMicrophoneList", getMicrophoneList);
