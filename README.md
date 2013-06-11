@@ -1,3 +1,4 @@
+hello
 
 A jQuery plugin providing Voice Activity Detection (vad) and streaming access to microphone via Flash and event handling.
 
