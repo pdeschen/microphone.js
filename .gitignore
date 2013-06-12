@@ -1,2 +1,14 @@
 conf/
 Rakefile
+
+\.DS_Store
+*\.pyc
+*\.sublime-project
+*\.sublime-workspace
+
+config/server.php
+public/cache
+cisystemcore/logs
+local
+local_*
+node_modules
