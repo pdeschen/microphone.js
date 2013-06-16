@@ -105,8 +105,9 @@ package {
     };
 
     public function streamHandler(event:SampleDataEvent):void {
+      log('sending activity level event.');
+      ExternalInterface.call(JSObject + '.activity', id, event.currentTarget.activityLevel);
       log('accumulating received data.');
-      ExternalInterface.call(JSObject + '.event', id, event);
       // accumulate stream
       while(event.data.bytesAvailable){
         buffer.push(event.data.readFloat());

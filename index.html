@@ -28,8 +28,11 @@
         $('#microphone').on('data', function(event, data){
           console.log(data);
         });
-        $('#microphone').on('vad', function(event, data){
-          console.log(data);
+        $('#microphone').on('activity', function(event, activity){
+          console.log(activity);
+        });
+        $('#microphone').on('vad', function(event, vad){
+          console.log(vad);
         });
       });
     </script>
