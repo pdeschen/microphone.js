@@ -70,8 +70,8 @@
       bridge.onStatus = function(event) {
         $(plugin.el).trigger('status', event);
       };
-      bridge.onEvent = function(event) {
-        $(plugin.el).trigger('event', event);
+      bridge.onActivity= function(activity) {
+        $(plugin.el).trigger('activity', activity);
       };
       bridge.onVad= function(event) {
         $(plugin.el).trigger('vad', event);
@@ -108,8 +108,8 @@
     vad: function(id, event){
       this.mics[id].onVad(event);
     },
-    event: function(id, event){
-      this.mics[id].onEvent(event);
+    activity: function(id, activity){
+      this.mics[id].onActivity(activity);
     },
     data : function(id, data, event){
       this.mics[id].onData(data, event);
