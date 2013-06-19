@@ -1,5 +1,3 @@
-hello
-
 A jQuery plugin providing Voice Activity Detection (vad) and streaming access to microphone via Flash and event handling.
 
 ## How
@@ -11,7 +9,7 @@ Both `start` and `stop` method are used to activate and deactivate the microphon
 upon `ready` event, while `stop()` is either to be used following a `setTimeout()` or upon `vad` event
 type where `e.activating === false`. 
 
-As for the `event`, it can be used for instead to monitor activity level (`[0:100]`) and show off a volume/activity meter of your own.
+As for the `activity`, it can be used for instead to monitor activity level (`[0:100]`) and show off a volume/activity meter of your own.
 
 The plugin creates the HTML object underneat the selector and add the `microphone` css class to be
 styled for size, visibility and such.
@@ -61,9 +59,11 @@ access notice, and potentially configure the device itself.
     },
     debugging  : true
 
-## Event Samples
+## Events 
 
 ### `vad`
+
+This event is fired upon voice activity detection.
 
     {
       activating: true,
@@ -77,6 +77,9 @@ access notice, and potentially configure the device itself.
 
 ### `data`
 
+This event is fired once a frame buffer buffer has been filled or the microphone has been stopped.
+Buffer size is 4096.
+
     {
       sample: Array[4096],
       timestamp: 1370219409273,
@@ -85,8 +88,74 @@ access notice, and potentially configure the device itself.
 
 ### `activity`
 
-    18
+This event is fired once for each frame sample received within the microphone Flash plugin. It may not
+be fired at continuous rate. Activity level values range between 0-100.
 
+    {
+        "encodeQuality": 6,
+        "useEchoSuppression": false,
+        "noiseSuppressionLevel": -30,
+        "enhancedOptions": null,
+        "activityLevel": 5,
+        "soundTransform": {
+            "rightToRight": 1,
+            "volume": 1,
+            "pan": 0,
+            "leftToRight": 0,
+            "rightToLeft": 0,
+            "leftToLeft": 1
+        },
+        "gain": 50,
+        "silenceLevel": 10,
+        "rate": 8,
+        "silenceTimeout": 2000,
+        "enableVAD": true,
+        "codec": "pcmu",
+        "name": "Default",
+        "muted": false,
+        "framesPerPacket": 2,
+        "index": 0
+    }
+
+### `status`
+
+This event is fired upon the user clicking either one of `accept` or `reject` from within the Flash settings
+privacy dialog.
+
+    {
+      "level": "status",
+      "code": "Microphone.Muted",
+      "currentTarget": {
+          "encodeQuality": 6,
+          "useEchoSuppression": false,
+          "noiseSuppressionLevel": -30,
+          "enhancedOptions": null,
+          "activityLevel": -1,
+          "soundTransform": {
+              "rightToRight": 1,
+              "volume": 1,
+              "pan": 0,
+              "leftToRight": 0,
+              "rightToLeft": 0,
+              "leftToLeft": 1
+          },
+          "gain": 28,
+          "silenceLevel": 10,
+          "rate": 8,
+          "silenceTimeout": 2000,
+          "enableVAD": true,
+          "codec": "pcmu",
+          "name": "Default",
+          "muted": true,
+          "framesPerPacket": 2,
+          "index": 0
+      },
+      "eventPhase": 2,
+      "type": "status",
+      "bubbles": false,
+      "cancelable": false,
+      ...
+    }
 
 ## Building Flash Object
 

@@ -42,7 +42,7 @@ package {
 
       debugging = options.debugging  || debugging;
       JSObject  = options.objectName || JSObject;
-      silenceLevel = options.silenceLevel || silenceLevel; 
+      silenceLevel = options.silenceLevel || silenceLevel;
       silenceTimeout = options.silenceTimeout || silenceTimeout;
       codec = options.codec || codec;
       gain= options.gain || gain;
@@ -52,21 +52,21 @@ package {
       log(options);
 
       if(majorVersion + majorRevision < 10.1){
-        this.error("Flash Player 10.1 or above is required.");
+        error("Flash Player 10.1 or above is required.");
         return;
-      }            
+      }
 
       Security.showSettings(SecurityPanel.DEFAULT);
 
       mic = Microphone.getMicrophone();
 
       if ( null != mic ) {
-        mic.addEventListener(StatusEvent.STATUS,statusHandler);
-        mic.addEventListener(ActivityEvent.ACTIVITY,activityHandler);
+        mic.addEventListener(StatusEvent.STATUS, statusHandler);
+        mic.addEventListener(ActivityEvent.ACTIVITY, activityHandler);
         mic.codec = codec;
         mic.enableVAD = true;
         mic.setSilenceLevel(silenceLevel, silenceTimeout);
-        mic.setUseEchoSuppression(false); 
+        mic.setUseEchoSuppression(false);
         mic.setLoopBack(false);
         mic.gain = gain;
         mic.rate = 8;
@@ -82,20 +82,20 @@ package {
         ExternalInterface.addCallback("stop", stop);
 
       } else if (Microphone.isSupported === false) {
-        this.error("Microphone usage is not supported.");
+        error("Microphone usage is not supported.");
       } else {
-        this.error("No microphone detected.");
+        error("No microphone detected.");
       }
       ExternalInterface.call(JSObject + '.ready', id);
     };
 
-    public function start():void{
+    public function start():void {
       log('started.');
       buffer = new Array();
       mic.addEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
     };
 
-    public function stop():void{
+    public function stop():void {
       log('stopped.');
       // dispatch remaining buffer
       // could we have accumulated buffer > MAX_BUFFER_SIZE at this point?
@@ -106,7 +106,7 @@ package {
 
     public function streamHandler(event:SampleDataEvent):void {
       log('sending activity level event.');
-      ExternalInterface.call(JSObject + '.activity', id, event.currentTarget.activityLevel);
+      ExternalInterface.call(JSObject + '.activity', id, event.currentTarget);
       log('accumulating received data.');
       // accumulate stream
       while(event.data.bytesAvailable){
@@ -120,15 +120,15 @@ package {
       }
     };
 
-    public function setQuality(quality:Number):void{
+    public function setQuality(quality:Number):void {
       mic.encodeQuality = quality;
     };
 
-    public function setGain(gain:Number):void{
+    public function setGain(gain:Number):void {
       mic.gain = gain;
     };
 
-    public function setRate(rate:Number):void{
+    public function setRate(rate:Number):void {
       mic.rate = rate;
     };
 
@@ -136,17 +136,17 @@ package {
       return mic.rate;
     };
 
-    public function getName():String{
+    public function getName():String {
       return Microphone.names[mic.index];
     };
 
-    public function setMic(index:Number):Boolean{
+    public function setMic(index:Number):Boolean {
       mic = Microphone.getMicrophone(index);
-      ExternalInterface.call('console.log', "Microphone changed");
+      log("Microphone changed");
       return true;
     };
 
-    public function getMicrophoneList():Array{
+    public function getMicrophoneList():Array {
       var list:Array = new Array();
 
       for (var i:Number = 0, l:Number = Microphone.names.length; i < l; i++) {
@@ -155,24 +155,26 @@ package {
       return list;
     };
 
-    public function error(message:String):void{
-      ExternalInterface.call(JSObject + '.error', id, "microphone.js:", message);
+    public function statusHandler(event:StatusEvent):void {
+      ExternalInterface.call(JSObject + '.status', id, event);
+      log("status:" + event.code + " : " + event);
     };
 
-    public function log(message:*):void{
+    public function activityHandler(event:ActivityEvent):void {
+      ExternalInterface.call(JSObject + '.vad', id, event);
+      log("vad: " + mic.activityLevel + " : " + event);
+    };
+
+    public function error(message:String):void {
+      ExternalInterface.call(JSObject + '.error', id, "microphone.js:", message);
+      log("error: " + message);
+    };
+
+    public function log(message:*):void {
       if(debugging){
         ExternalInterface.call('console.log', "microphone.js:", message);
       }
     };
 
-    public function statusHandler(event:StatusEvent):void{
-      ExternalInterface.call(JSObject + '.status', id, event);
-      this.log("status:" + event.code + " : " + event);
-    };
-
-    public function activityHandler(event:ActivityEvent):void{
-      ExternalInterface.call(JSObject + '.vad', id, event);
-      this.log("vad: " + mic.activityLevel + " : " + event);
-    };
   }
 }
