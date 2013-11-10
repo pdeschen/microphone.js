@@ -52,6 +52,7 @@ access notice, and potentially configure the device itself.
     sampleRate : 8000,
     codec : 'pcmu',
     gain       : 50,
+    buffer_size : 4096,
     swfPath    : 'microphone.swf',
     vad: {
       level: 10,

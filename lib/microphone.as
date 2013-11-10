@@ -20,15 +20,16 @@ package {
   public class microphone extends Sprite {
 
     private var mic:Microphone    = null;
+    private var MAX_BUFFER_SIZE:Number = 4096;
     private var debugging:Boolean = false;
     private var JSObject:String   = "jQuery.microphone.Bridges";
     private var id:String = null;
     private var silenceLevel:Number = 50;
     private var silenceTimeout:Number = 2000;
     private var gain:Number = 50;
+    private var buffer_size:Number = MAX_BUFFER_SIZE;
     private var codec:String= SoundCodec.PCMU;
     private var buffer:Array = new Array();
-    private var MAX_BUFFER_SIZE:Number = 4096;
 
     public function microphone() {
 
@@ -45,7 +46,8 @@ package {
       silenceLevel = options.silenceLevel || silenceLevel;
       silenceTimeout = options.silenceTimeout || silenceTimeout;
       codec = options.codec || codec;
-      gain= options.gain || gain;
+      gain = options.gain || gain;
+      buffer_size = options.buffer_size || MAX_BUFFER_SIZE;
       // what happens when no id is provided? Events can't be dispatched
       id = options.id;
 
@@ -98,7 +100,7 @@ package {
     public function stop():void {
       log('stopped.');
       // dispatch remaining buffer
-      // could we have accumulated buffer > MAX_BUFFER_SIZE at this point?
+      // could we have accumulated buffer > buffer_size at this point?
       log('dispatching remaining buffer of size ' + buffer.length + ".");
       ExternalInterface.call(JSObject + '.end', id, buffer);
       mic.removeEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
@@ -114,9 +116,9 @@ package {
       }
       // only dispatch if we have reached max buffer size. Remaining will be
       // pertained and dispatched on next event handling or upon stop
-      if (buffer.length >= MAX_BUFFER_SIZE) {
-        log('dispatching buffer of size ' + MAX_BUFFER_SIZE + ".");
-        ExternalInterface.call(JSObject + '.data', id, buffer.splice(0, MAX_BUFFER_SIZE));
+      if (buffer.length >= buffer_size ) {
+        log('dispatching buffer of size ' + buffer_size + ".");
+        ExternalInterface.call(JSObject + '.data', id, buffer.splice(0, buffer_size));
       }
     };
 

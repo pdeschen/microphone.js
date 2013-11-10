@@ -17,6 +17,7 @@
       sampleRate : 8000,
       codec : 'pcmu',
       gain       : 50,
+      buffer_size : 4096,
       swfPath    : 'microphone.swf',
       vad: {
         level: 10,
@@ -31,16 +32,17 @@
       plugin.el = el;
       plugin.id = 'mic' + new Date().getTime();
 
-      var args, swf, bridge; 
+      var args, swf, bridge;
       swf = $('<object>').attr('id', plugin.id);
       swf.addClass('microphone');
       swf.attr('type', 'application/x-shockwave-flash');
       swf.attr('data', plugin.settings.swfPath);
       swf.css({width:'215px', height: '138px'});
-     
-      // building the flash vars 
+
+      // building the flash vars
       args = "debugging=" + plugin.settings.debugging + "&";
       args += "gain=" + plugin.settings.gain + "&";
+      args += "buffer_size=" + plugin.settings.buffer_size+ "&";
       args += "codec=" + plugin.settings.codec + "&";
       args += "id=" + plugin.id + "&";
       args += "silenceLevel=" + plugin.settings.vad.level + "&";
@@ -53,17 +55,17 @@
 
       // swf bridge
       bridge = {id: plugin.id};
-      
+
       bridge.onReady= function() {
         plugin.swf = document.getElementById(plugin.id);
         $(plugin.el).trigger('ready');
       };
       bridge.onData = function (data, event){
         $(plugin.el).trigger('data', {timestamp: new Date().getTime(), sample: data, event: event});
-      }; 
+      };
       bridge.onEnd = function (data, event){
         $(plugin.el).trigger('end', {timestamp: new Date().getTime(), sample: data, event: event});
-      }; 
+      };
       bridge.onError= function(message) {
         $(plugin.el).trigger('error', message);
       };
@@ -76,7 +78,7 @@
       bridge.onVad= function(event) {
         $(plugin.el).trigger('vad', event);
       };
-      
+
       $.microphone.Bridges.push(bridge);
     };
 
@@ -121,5 +123,5 @@
       this.mics[id].onError(message);
     }
   };
-    
+
 }(jQuery));

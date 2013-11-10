@@ -12,11 +12,12 @@
           console.error(message);
         });
         var options = {
-            vad: {
-                level: 10, 
-                timeout: 2000
-            }
-          };
+          buffer_size : 400,
+          vad: {
+            level: 10,
+            timeout: 2000
+          }
+        };
         var microphone = new $.microphone('#microphone', options);
         $('#microphone').on('ready', function(event){
           console.log('ready');
