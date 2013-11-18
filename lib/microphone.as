@@ -92,7 +92,7 @@ package {
     };
 
     public function start():void {
-      log('started.');
+      log('ready.');
       buffer = new Array();
       mic.addEventListener(SampleDataEvent.SAMPLE_DATA,streamHandler);
     };
@@ -112,8 +112,7 @@ package {
       log('accumulating received data.');
       // accumulate stream
       while(event.data.bytesAvailable){
-        //buffer.push(event.data.readFloat());
-        buffer.push(event.data.readUnsignedByte());
+        buffer.push(event.data.readFloat());
       }
       // only dispatch if we have reached max buffer size. Remaining will be
       // pertained and dispatched on next event handling or upon stop
